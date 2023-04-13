@@ -16,14 +16,17 @@ router.get("/", function (req, res, next) {
 //login authentication function of passort local statergy
 
 router.post("/login", function (req, res, next) {
-  console.log(req.body);
-  if (req.user) {
-    return res.send("user is already logged in");
-  }
+  const keys = Object.keys(req);
+  console.log("this is before user" + req.user);
+  console.log("this is before session" + req.sessionID);
   passport.authenticate("local", function (err, user, info) {
     if (err) {
-      console.log(err, user, info);
+      console.log(err);
       return res.status(401).json(err);
+    }
+    if (!user) {
+      console.log("no user was found with that attribute ");
+      return res.status(401).json({ status: "false" });
     }
     if (user) {
       console.log("user found and authenticated");
@@ -34,19 +37,24 @@ router.post("/login", function (req, res, next) {
         }
         console.log("req username" + req.user);
         const user = {
-          name: req.user.firstName + " " + req.user.lastName,
+          name: req.user.firstName + req.user.lastName,
           username: req.user.username,
           id: req.user._id,
           timeStamp: Date.now(),
         };
+        req.login(user, (err) => {
+          console.log(err);
+        });
         return res.send(user);
       });
     } else {
       res.status(401).json(info);
     }
   })(req, res, next);
+  console.log(keys);
+  console.log(keys.length);
 
-  // res.send({ status: "success", data: "No such data as of now" });
+  console.log("this is after the session", req.session);
 });
 
 // signup function add new users to the database
@@ -74,18 +82,15 @@ router.post("/signup", async (req, res, next) => {
     console.log(err);
   }
 });
-module.exports = router;
 
 // logout using the local method
-
 router.get("/logout", (req, res, next) => {
-  if (!req.user) {
-    res.send("no user has logged in");
-  } else {
-    req.logout();
-    res.status(200).json({
-      success: true,
-      text: "logged out successfully",
-    });
-  }
+  console.log("this user was logged in ", req.user);
+  req.logout((err) => {
+    console.log(err);
+  });
+  console.log("shuld be logged out");
+  res.send("logged out");
 });
+
+module.exports = router;

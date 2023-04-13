@@ -9,8 +9,9 @@ var MongoDBStore = require("connect-mongodb-session")(session);
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 const passport = require("passport");
-const passportLocal = require("passport-local").Strategy;
+
 const connectDatabase = require("./config/database");
+const passportConfig = require("./auth/passportConfig");
 
 var app = express();
 
@@ -42,7 +43,9 @@ app.use(
 );
 
 const options = {
+  credentials: true,
   origin: "http://localhost:3001",
+  methods: ["POST", "PUT", "GET", "OPTIONS", "HEAD", "DELETE"],
 };
 app.use(cors(options));
 
@@ -57,7 +60,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use(passport.initialize());
-app.use(passport.session());
+app.use(passport.authenticate("session"));
 require("./auth/passportConfig")(passport);
 
 app.use("/", indexRouter);
